@@ -11,6 +11,7 @@ use comrak::{
 use headless_chrome::protocol::page::PrintToPdfOptions;
 
 use math_extractor::katex_replace;
+use yaml_rust::Yaml;
 
 const HTML_TEMPLATE: &str = include_str!(concat!(env!("OUT_DIR"), "/template.mustache"));
 
@@ -30,7 +31,7 @@ fn setup_comrak_opts() -> ComrakOptions {
     opts
 }
 
-fn comrak_convert_to_html(markdown: &str) -> String {
+fn comrak_convert_to_html(markdown: &str) -> (String, Option<Yaml>) {
     let opts = setup_comrak_opts();
 
     let mut plugins = ComrakPlugins::default();
@@ -40,6 +41,8 @@ fn comrak_convert_to_html(markdown: &str) -> String {
     let arena = Arena::new();
 
     let markdown_ast = comrak::parse_document(&arena, &markdown, &opts);
+
+    let mut frontmatter = None;
 
     for node_edge in markdown_ast.traverse() {
         let node = match node_edge {
@@ -54,13 +57,40 @@ fn comrak_convert_to_html(markdown: &str) -> String {
                 let text = String::from_utf8_lossy(&code.literal);
                 code.literal = text.replace('$', "\\$").as_bytes().to_vec();
             }
+            NodeValue::FrontMatter(text) => {
+                let text = &String::from_utf8_lossy(text);
+                let text = &text[4..&text.len() - 5];
+                match yaml_rust::YamlLoader::load_from_str(text) {
+                    Ok(it) => frontmatter = Some(it.into_iter().next().unwrap()),
+                    Err(e) => {
+                        eprintln!("Parsing frontmatter failed: {e}");
+                    }
+                }
+            }
             _ => (),
         }
     }
 
     let mut html_out = Vec::new();
     comrak::format_html_with_plugins(markdown_ast, &opts, &mut html_out, &plugins).unwrap();
-    String::from_utf8_lossy(&html_out).to_string()
+    let mut html_out = String::from_utf8_lossy(&html_out).to_string();
+
+    if let Some(frontmatter) = &frontmatter {
+        if let Some(frontmatter) = frontmatter.as_hash() {
+            for (key, val) in frontmatter.iter() {
+                let key = key.as_str();
+                let val = val.as_str();
+                match (key, val) {
+                    (Some(key), Some(val)) => {
+                        html_out = html_out.replace(&format!("{{{{{}}}}}", key), val);
+                    }
+                    _ => (),
+                }
+            }
+        }
+    }
+
+    (html_out, frontmatter)
 }
 
 fn chrome_render_to_pdf(
@@ -112,13 +142,19 @@ fn main() {
     let md_in = md_in.replace("\\$", "\\\\$");
 
     // Conver the actual markdown to HTML
-    let html_out = comrak_convert_to_html(&md_in);
+    let (html_out, frontmatter) = comrak_convert_to_html(&md_in);
 
     // Run the custom math scope parser together with KaTeX to render maths symbols
     let html_out = katex_replace(&html_out);
 
     // Insert the rendered HTML into the HTML Template
-    let html_out = HTML_TEMPLATE.replace("{{RENDERED_MARKDOWN}}", &html_out);
+    let mut html_out = HTML_TEMPLATE.replace("{{RENDERED_MARKDOWN}}", &html_out);
+
+    if let Some(frontmatter) = frontmatter {
+        if let Some(title) = &frontmatter["title"].as_str() {
+            html_out = html_out.replace("{{TITLE}}", &title);
+        }
+    }
 
     match (cli_args.html_out, cli_args.pdf_out) {
         (Some(html_file), Some(pdf_file)) => {

@@ -9,6 +9,7 @@ comrak = "0.14.0"
 headless_chrome = "0.9.0"
 katex = { version = "0.4", default-features = false, features = ["duktape"] }
 rand = "0.8.5"
+yaml-rust = "0.4.5"
 
 [build-dependencies]
 base64 = "0.13.1"

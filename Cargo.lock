@@ -788,6 +788,7 @@ dependencies = [
  "headless_chrome",
  "katex",
  "rand 0.8.5",
+ "yaml-rust",
 ]
 
 [[package]]

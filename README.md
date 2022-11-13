@@ -1,3 +1,6 @@
+---
+title: Markdown to HTML and PDF
+---
 # Markdown to HTML and PDF
 
 This project aims to generate github style HTML and PDF files from Markdown without LaTeX.
@@ -65,3 +68,8 @@ This sum results in the following values:
 1. Abc
    1. Cde
       1. Efg
+
+Yaml frontmatter is parsed an can be used as variables inside the Markdown using ``{{variable}}``.
+
+The title of this document is "{{title}}" which is dynamically inserted from the frontmatter. 
+This behavior currently can't be escaped or disabled. 
