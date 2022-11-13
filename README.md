@@ -29,7 +29,7 @@ Options:
 
 ## Example
 
-This whole README can be found in rendered PDF form in the assets directory to view the rendering.
+This whole README can be found in [rendered PDF](https://github.com/dnlmlr/mdtohtmlpdf/blob/master/assets/rendered_README.pdf) form in the assets directory to view the rendering.
 
 This is a bit of **Markdown** in order to demonstrate the *conversion*. 
 
@@ -49,14 +49,14 @@ X = \sum_{i = 0}^5{i \cdot 2}
 $$
 
 This sum results in the following values:
-| $i$ | $i \cdot 2$ | $X$ |
-|:---:|:-----------:|:---:|
-| 0   | 0           | 0   |
-| 1   | 2           | 2   |
-| 2   | 4           | 6   |
-| 3   | 6           | 12  |
-| 4   | 8           | 20  |
-| 5   | 10          | 30  |
+|  $i$  | $i \cdot 2$ |  $X$  |
+| :---: | :---------: | :---: |
+|   0   |      0      |   0   |
+|   1   |      2      |   2   |
+|   2   |      4      |   6   |
+|   3   |      6      |  12   |
+|   4   |      8      |  20   |
+|   5   |     10      |  30   |
 
 - Abc
   - Cde
